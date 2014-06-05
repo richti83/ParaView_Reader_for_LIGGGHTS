@@ -1,0 +1,17 @@
+The Plugin converts the dump local files to a ParaView readable format.
+In the inputscript use a compute like this
+
+compute		bid all rigid property id	#body ID
+compute		btype all rigid property type	#body type
+compute		xcm all rigid property xcm	#center of mass
+compute		fcm all rigid property fcm	#center of force on COM
+compute		quat all rigid property quat	#rotation arround COM
+compute		vel all rigid property vcm	#velocity of COM
+
+and a dump command like this
+
+dump 		rigids 	all local  1000 post/rigids*.dump c_bid c_btype c_xcm[1] c_xcm[2] c_xcm[3] c_quat[1] c_quat[2] c_quat[3] c_quat[4] c_vel[1] c_vel[2] c_vel[3] c_fcm[1] c_fcm[2] c_fcm[3]
+
+to generate the dump files.
+
+The Quaternionen are transformed to a 3x3 rotation matrix M which can be used with the sample python skript to display a Box at the COM of the rigid body with the correct orientation.

@@ -1,0 +1,5 @@
+use dump-command like this:
+
+dump		dmp all custom 100 post/dump*.bin id x y z vx vy vz radius mass
+
+where mass can be any custom scalar, the order is hardcoded !

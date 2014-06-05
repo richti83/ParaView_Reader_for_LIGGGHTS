@@ -1,9 +1,0 @@
-The Paraview Plugin can be used to display the dump-files directly in Paraview without converting them to VTK Format.
-
-Please see README File in the package for further information.
-
-There is a binary reader, bases on the bin2txt tool, too. The speedup is very well. Just use .bin as file extension and LIGGGHTS will dump in binary format - and the binreader will read. The dump columns are hard coded to
-
-dump dmp all custom 100 post/dump*.bin id x y z vx vy vz radius mass
-
-Where mass can be any scalar value. But you can change the code to match your dumpstyle.

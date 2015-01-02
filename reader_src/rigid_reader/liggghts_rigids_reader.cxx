@@ -332,11 +332,15 @@ int liggghts_rigids_reader::RequestData(vtkInformation *request, vtkInformationV
  return 1;
 }
 
-int liggghts_rigids_reader::RequestInformation(vtkInformation *request, vtkInformationVector **inputVector, vtkInformationVector *outputVector)
+int liggghts_rigids_reader::RequestInformation(
+	vtkInformation *vtkNotUsed(request), 
+	vtkInformationVector **vtkNotUsed(inputVector),
+	vtkInformationVector *outputVector)
 {
 	vtkInformation *outInfo = outputVector->GetInformationObject(0);
-	outInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),
-		-1);
+	//outInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),-1);
+	outInfo->Set(CAN_HANDLE_PIECE_REQUEST(),
+                 1);
 	return 1;
 }
 

@@ -1,4 +1,4 @@
-﻿<ServerManagerConfiguration>
+<ServerManagerConfiguration>
 <ProxyGroup name="internal_sources">
    <SourceProxy name="liggghts_reader_core" 
                 class="liggghts_reader"
@@ -22,7 +22,7 @@
  
   <ProxyGroup name="sources">
     <SourceProxy name="liggghts_Reader"
-                         si_class="vtkSIFileSeriesReaderProxy"
+                         si_class="vtkSIMetaReaderProxy"
                          class="vtkFileSeriesReader"
                          file_name_method="SetFileName">
       <SubProxy>
@@ -60,3 +60,4 @@
 	 </SourceProxy> 
   </ProxyGroup>
 </ServerManagerConfiguration>
+

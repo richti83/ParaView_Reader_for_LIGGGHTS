@@ -42,8 +42,10 @@
 #include "stdlib.h"
 #include "string.h"
 
+#ifdef _WIN32
 typedef signed __int64       int64_t;
 typedef unsigned __int64     uint64_t;
+#endif
 
 //vtkCxxRevisionMacro(liggghts_binary_reader, "$Revision: 1.0 $");
 vtkStandardNewMacro(liggghts_binary_reader);
@@ -280,11 +282,15 @@ int liggghts_binary_reader::RequestData(vtkInformation *request, vtkInformationV
 	return 1;
 }
 
-int liggghts_binary_reader::RequestInformation(vtkInformation *request, vtkInformationVector **inputVector, vtkInformationVector *outputVector)
+int liggghts_binary_reader::RequestInformation(
+	vtkInformation *vtkNotUsed(request), 
+	vtkInformationVector **vtkNotUsed(inputVector),
+	vtkInformationVector *outputVector)
 {
 	vtkInformation *outInfo = outputVector->GetInformationObject(0);
-	outInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),
-		-1);
+	//outInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),-1);
+	outInfo->Set(CAN_HANDLE_PIECE_REQUEST(),
+                 1);
 	return 1;
 }
 

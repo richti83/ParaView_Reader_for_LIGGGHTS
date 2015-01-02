@@ -330,13 +330,18 @@ int liggghts_forcechainreader::RequestData(vtkInformation *request, vtkInformati
  return 1;
 }
 
-int liggghts_forcechainreader::RequestInformation(vtkInformation *request, vtkInformationVector **inputVector, vtkInformationVector *outputVector)
+int liggghts_forcechainreader::RequestInformation(
+	vtkInformation *vtkNotUsed(request), 
+	vtkInformationVector **vtkNotUsed(inputVector),
+	vtkInformationVector *outputVector)
 {
 	vtkInformation *outInfo = outputVector->GetInformationObject(0);
-	outInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),
-		-1);
+	//outInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),-1);
+	outInfo->Set(CAN_HANDLE_PIECE_REQUEST(),
+                 1);
 	return 1;
 }
+
 
 void liggghts_forcechainreader::PrintSelf(ostream& os, vtkIndent indent)
 {

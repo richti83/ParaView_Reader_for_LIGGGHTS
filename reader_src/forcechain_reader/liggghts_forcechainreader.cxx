@@ -120,6 +120,17 @@ void liggghts_forcechainreader::OpenFile()
 	}
 }
 
+// Entfernt Sonderzeichen am Ende
+void trim(char *str)
+{
+	size_t i = strlen(str)-1;
+	while( (i>=0) && ((str[i] == '\r') || (str[i] == '\n') || (str[i] == ' ')))
+	{
+		str[i] = '\0';
+		i--;
+	}
+}
+
 int liggghts_forcechainreader::RequestData(vtkInformation *request, vtkInformationVector **inputVector, vtkInformationVector *outputVector)
 {
 
@@ -139,9 +150,18 @@ int liggghts_forcechainreader::RequestData(vtkInformation *request, vtkInformati
 	this->File->getline(line,sizeof(line)); //4th line = #Atoms
 	int COUNT=atoi(line);
 	//if (COUNT<1) return 1;
+
 	double SHEAR=0;
 
-	this->File->getline(line,sizeof(line)); //5th line = ITEM: ..
+	this->File->getline(line,sizeof(line)); //5th line = ITEM: BOX Bounds OR ITEM: ENTRIES
+	trim(line);
+	if (strncmp(line,"ITEM: BOX BOUNDS",15) == 0) {
+		//override ..
+		this->File->getline(line,sizeof(line)); //xlow xhi
+		this->File->getline(line,sizeof(line)); //ylow yhi
+		this->File->getline(line,sizeof(line)); //zlow zhi
+		this->File->getline(line,sizeof(line)); //Item Entries
+	}
 
 	points = vtkPoints::New();
 	points->SetDataTypeToFloat();

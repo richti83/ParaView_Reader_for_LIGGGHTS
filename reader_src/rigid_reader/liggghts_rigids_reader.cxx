@@ -184,6 +184,18 @@ int liggghts_rigids_reader::RequestData(vtkInformation *request, vtkInformationV
 	R->SetNumberOfComponents(3);
 	R->SetName("ROT");
 
+	vtkDoubleArray *Roll = vtkDoubleArray::New();
+	Roll->SetNumberOfComponents(1);
+	Roll->SetName("Roll");
+
+	vtkDoubleArray *Pitch = vtkDoubleArray::New();
+	Pitch->SetNumberOfComponents(1);
+	Pitch->SetName("Pitch");
+
+	vtkDoubleArray *Yaw = vtkDoubleArray::New();
+	Yaw->SetNumberOfComponents(1);
+	Yaw->SetName("Yaw");
+
 	vtkDoubleArray *A = vtkDoubleArray::New();
 	A->SetNumberOfComponents(3);
 	A->SetName("AXIS");
@@ -262,6 +274,18 @@ int liggghts_rigids_reader::RequestData(vtkInformation *request, vtkInformationV
 		rot[1]=M[3];
 		rot[2]=M[6];
 		R->InsertNextTupleValue(rot);
+
+/* roll = Mathf.Atan2(2*y*w - 2*x*z, 1 - 2*y*y - 2*z*z);
+pitch = Mathf.Atan2(2*x*w - 2*y*z, 1 - 2*x*x - 2*z*z);
+yaw = Mathf.Asin(2*x*y + 2*z*w);*/
+
+		double roll_value=atan2(2*yq*wq - 2*xq*zq, 1 - 2*yq*yq - 2*zq*zq);
+		double pitch_value=atan2(2*xq*wq - 2*yq*zq, 1 - 2*xq*xq - 2*zq*zq);
+		double yaw_value=asin(2*xq*yq + 2*zq*wq);
+
+		Roll->InsertNextValue(roll_value);
+		Pitch->InsertNextValue(pitch_value);
+		Yaw->InsertNextValue(yaw_value);
 		
 		ids->InsertNextValue(id);
 		types->InsertNextValue(type);
@@ -293,6 +317,9 @@ int liggghts_rigids_reader::RequestData(vtkInformation *request, vtkInformationV
 	myoutput->GetPointData()->AddArray(types);
 	myoutput->GetPointData()->AddArray(forces);
 	myoutput->GetPointData()->AddArray(quats);
+	myoutput->GetPointData()->AddArray(Roll);
+	myoutput->GetPointData()->AddArray(Pitch);
+	myoutput->GetPointData()->AddArray(Yaw);
 	myoutput->GetPointData()->AddArray(velocity);
 	myoutput->GetPointData()->AddArray(T);
 	myoutput->GetPointData()->AddArray(R);
@@ -309,9 +336,11 @@ int liggghts_rigids_reader::RequestData(vtkInformation *request, vtkInformationV
 	R->Delete();R=NULL;
 	A->Delete();A=NULL;
 	a->Delete();a=NULL;
-	ids->Delete();a=NULL;
-	types->Delete();a=NULL;
-
+	ids->Delete();ids=NULL;
+	types->Delete();types=NULL;
+	Roll->Delete();Roll=NULL;
+	Pitch->Delete();Pitch=NULL;
+	Yaw->Delete();Yaw=NULL;
 
 	vtkIntArray *intValue;
 	intValue=vtkIntArray::New();

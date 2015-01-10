@@ -275,10 +275,6 @@ int liggghts_rigids_reader::RequestData(vtkInformation *request, vtkInformationV
 		rot[2]=M[6];
 		R->InsertNextTupleValue(rot);
 
-/* roll = Mathf.Atan2(2*y*w - 2*x*z, 1 - 2*y*y - 2*z*z);
-pitch = Mathf.Atan2(2*x*w - 2*y*z, 1 - 2*x*x - 2*z*z);
-yaw = Mathf.Asin(2*x*y + 2*z*w);*/
-
 		double roll_value=atan2(2*yq*wq - 2*xq*zq, 1 - 2*yq*yq - 2*zq*zq);
 		double pitch_value=atan2(2*xq*wq - 2*yq*zq, 1 - 2*xq*xq - 2*zq*zq);
 		double yaw_value=asin(2*xq*yq + 2*zq*wq);

@@ -167,7 +167,7 @@ int liggghts_forcechainreader::RequestData(vtkInformation *request, vtkInformati
 	points->SetDataTypeToFloat();
 	points->Reset();
 
-	double x1[3],x2[3],F[3],N[3],Fn[3],Fs[3],H[6];
+	double x1[3],x2[3],F[3],N[3],Fn[3],Fs[3],H[6],C[5],R[1];
 	double N_mag,Fmag;
 	int lc=0;
         int pc=0;
@@ -210,11 +210,44 @@ int liggghts_forcechainreader::RequestData(vtkInformation *request, vtkInformati
 	hist->SetNumberOfComponents(6);
 	hist->SetName("history");
 
+	vtkDoubleArray *cp = vtkDoubleArray::New();
+	cp->SetNumberOfComponents(7);
+	cp->SetName("ContactProperties");
+	cp->SetComponentName(0,"Area");
+	cp->SetComponentName(1,"ri");
+	cp->SetComponentName(2,"rj");
+	cp->SetComponentName(3,"distance");
+	cp->SetComponentName(4,"overlap");
+	cp->SetComponentName(5,"id1");
+	cp->SetComponentName(6,"id2");
+
+	vtkDoubleArray *rad = vtkDoubleArray::New();
+	rad->SetNumberOfComponents(1);
+	rad->Reset();
+	rad->SetNumberOfTuples(2*COUNT);
+	rad->SetComponentName(0,"radius");
+	rad->SetName("Radius");
+
+	vtkDoubleArray *vol = vtkDoubleArray::New();
+	vol->SetNumberOfComponents(1);
+	vol->Reset();
+	vol->SetNumberOfTuples(COUNT);
+	vol->SetComponentName(0,"Volume");
+	vol->SetName("Void");
+
+	vtkDoubleArray *pid = vtkDoubleArray::New();
+	pid->SetNumberOfComponents(1);
+	pid->Reset();
+	pid->SetNumberOfTuples(2*COUNT);
+	pid->SetComponentName(0,"ID");
+	pid->SetName("PID");
+
 	//Create a cell array to store the lines in and add the lines to it
 	lines = vtkCellArray::New();
 	H[0]=H[1]=H[2]=H[3]=H[4]=H[5]=0;
 	F[0]=F[1]=F[2]=0;
 	Fn[0]=Fn[1]=Fn[2]=Fs[0]=Fs[1]=Fs[2]=0;
+
 	while ( this->File->getline(line,sizeof(line)) ) { //every line
 		int ic=0;
 		std::string line_content=line;
@@ -233,20 +266,46 @@ int liggghts_forcechainreader::RequestData(vtkInformation *request, vtkInformati
 			case 9:	 F[0]=atof(item.c_str());break;
 			case 10: F[1]=atof(item.c_str());break;
 			case 11: F[2]=atof(item.c_str());break;
-			//case 12: F[3]=atof(item.c_str());break; //Fmag
 
+			//5 contact-properties values
+			case 12: C[0]=atof(item.c_str());break; //contact Area
+			case 13: C[1]=atof(item.c_str());break; //ri
+			case 14: C[2]=atof(item.c_str());break; //rj
+			case 15: C[3]=atof(item.c_str());break; //d
+			case 16: C[4]=atof(item.c_str());break; //overlap distance
+			
 			//6 history values for hertz/history with rolling friction:
-			case 13: H[0]=atof(item.c_str());break;
-			case 14: H[1]=atof(item.c_str());break;
-			case 15: H[2]=atof(item.c_str());break;
-			case 16: H[3]=atof(item.c_str());break;
-			case 17: H[4]=atof(item.c_str());break;
-			case 18: H[5]=atof(item.c_str());break;
+			case 17: H[0]=atof(item.c_str());break;
+			case 18: H[1]=atof(item.c_str());break;
+			case 19: H[2]=atof(item.c_str());break;
+			case 20: H[3]=atof(item.c_str());break;
+			case 21: H[4]=atof(item.c_str());break;
+			case 22: H[5]=atof(item.c_str());break;
+
 			}
 			ic++;
 		} //item
 		points->InsertNextPoint(x1[0], x1[1], x1[2]);
 		points->InsertNextPoint(x2[0], x2[1], x2[2]);
+
+		pid->InsertTuple1(pc, id1[lc]);	//radius of point1
+		pid->InsertTuple1(pc+1, id2[lc]);  //radius of point2
+
+		C[5]=id1[lc];
+		C[6]=id2[lc];
+
+
+		rad->InsertTuple1(pc, C[1]);	//radius of point1
+		rad->InsertTuple1(pc+1, C[2]);  //radius of point2
+
+		//V= PI*(Ri+Rj-d)^2*[d^2+2d*(Ri+Rj)-3*(Ri-Rj)^2]*/(12*d)
+		double Ri=C[1];
+		double Rj=C[2];
+		double d=C[3];
+		double V=M_PI*((Ri+Rj-d)*(Ri+Rj-d)*(d*d+2*d*Rj-3*Rj*Rj+2*d*Ri+6*Rj*Ri-3*Ri*Ri))/(12*d); //see http://mathworld.wolfram.com/Sphere-SphereIntersection.html+
+
+		
+		
 		N[0]=x2[0]-x1[0];
 		N[1]=x2[1]-x1[1];
 		N[2]=x2[2]-x1[2];
@@ -279,6 +338,8 @@ int liggghts_forcechainreader::RequestData(vtkInformation *request, vtkInformati
 		shear->InsertNextTupleValue(Fs);
 		nforce->InsertNextTuple(Fn);
 		hist->InsertNextTuple(H);
+		cp->InsertNextTuple(C);
+		vol->InsertTuple1(lc,V);
 
 		pc+=2;
 		lc++;
@@ -294,21 +355,32 @@ int liggghts_forcechainreader::RequestData(vtkInformation *request, vtkInformati
 	myoutput->SetPoints(points);
 	myoutput->SetLines(lines);
 
+	myoutput->GetPointData()->AddArray(pid);
+	myoutput->GetPointData()->AddArray(rad);
+
+
 	myoutput->GetCellData()->AddArray(forces);
 	myoutput->GetCellData()->AddArray(normals);
 	myoutput->GetCellData()->AddArray(shear);
 	myoutput->GetCellData()->AddArray(nforce);
 	myoutput->GetCellData()->AddArray(hist);
+	myoutput->GetCellData()->AddArray(cp);
+	myoutput->GetCellData()->AddArray(vol);
 	
 	// free memory
 	points->Delete();
 	lines->Delete();
+	rad->Delete();
+	vol->Delete();
+	pid->Delete();
 
 	forces->Delete();forces=NULL;
 	normals->Delete();normals=NULL;
 	shear->Delete();shear=NULL;
 	nforce->Delete();nforce=NULL;
 	hist->Delete();hist=NULL;
+	cp->Delete();cp=NULL;
+
 
 	vtkIntArray *intValue;
 	intValue=vtkIntArray::New();

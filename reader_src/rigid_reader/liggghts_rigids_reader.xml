@@ -22,7 +22,7 @@
  
   <ProxyGroup name="sources">
     <SourceProxy name="liggghts_rigids_reader"
-                         si_class="vtkSIMetaReaderProxy"
+                         si_class="vtkSIFileSeriesReaderProxy"
                          class="vtkFileSeriesReader"
                          file_name_method="SetFileName">
       <SubProxy>

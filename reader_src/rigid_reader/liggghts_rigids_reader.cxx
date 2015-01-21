@@ -142,11 +142,16 @@ int liggghts_rigids_reader::RequestData(vtkInformation *request, vtkInformationV
 	this->File->getline(line,sizeof(line)); //4th line = #Atoms
 	int COUNT=atoi(line);
 	//if (COUNT<1) return 1;
-	this->File->getline(line,sizeof(line)); //5th line = ITEM: Bix Bounds ..
-	this->File->getline(line,sizeof(line)); //xlo,xhi
-	this->File->getline(line,sizeof(line)); //ylo,yhi
-	this->File->getline(line,sizeof(line)); //zlo,zhi
-	this->File->getline(line,sizeof(line)); //Item: ENTRIES
+	this->File->getline(line,sizeof(line)); //5th line = ITEM: BOX Bounds OR ITEM: ENTRIES
+	//trim(line);
+	if (strncmp(line,"ITEM: BOX BOUNDS",15) == 0) {
+		//override ..
+		this->File->getline(line,sizeof(line)); //xlow xhi
+		this->File->getline(line,sizeof(line)); //ylow yhi
+		this->File->getline(line,sizeof(line)); //zlow zhi
+		this->File->getline(line,sizeof(line)); //Item Entries
+	}
+
 
 	double x[3],F[3],Q[4],vel[3],M[9],rot[3],axis[3],angle;
 	int id,type;
@@ -256,6 +261,11 @@ int liggghts_rigids_reader::RequestData(vtkInformation *request, vtkInformationV
 		double yq = Q[2];
 		double zq = Q[3];
 
+		double q0 = Q[0];
+		double q1 = Q[1];
+		double q2 = Q[2];
+		double q3 = Q[3];
+
 
 		M[0]=xq*xq+wq*wq-yq*yq-zq*zq;
 		M[1]=2*(xq*yq-wq*zq);
@@ -270,9 +280,9 @@ int liggghts_rigids_reader::RequestData(vtkInformation *request, vtkInformationV
 
 	        //(Q_1^2+Q_0^2-Q_2^2-Q_3^3)*iHat+2*(Q_0*Q_3+Q_1*Q_2)*jHat+2*(Q_1*Q_3-Q_0*Q_2)*kHat
 				
-		rot[0]=M[0];
-		rot[1]=M[3];
-		rot[2]=M[6];
+		rot[0]=atan2(2*(q0*q1+q2*q3),1-2*(q1*q1+q2*q2)); //M[0];
+		rot[1]=asin(2*(q0*q2-q3*q1));//M[3];
+		rot[2]=atan2(2*(q0*q3+q1*q2),1-2*(q2*q2+q3*q3));//M[6];
 		R->InsertNextTupleValue(rot);
 
 /* roll = Mathf.Atan2(2*y*w - 2*x*z, 1 - 2*y*y - 2*z*z);
@@ -367,9 +377,9 @@ int liggghts_rigids_reader::RequestInformation(
 	vtkInformationVector *outputVector)
 {
 	vtkInformation *outInfo = outputVector->GetInformationObject(0);
-	//outInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),-1);
-	outInfo->Set(CAN_HANDLE_PIECE_REQUEST(),
-                 1);
+	outInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),-1);
+	/*outInfo->Set(CAN_HANDLE_PIECE_REQUEST(),
+                 1);*/
 	return 1;
 }
 

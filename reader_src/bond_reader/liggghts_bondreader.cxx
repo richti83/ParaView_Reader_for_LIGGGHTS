@@ -30,6 +30,7 @@
 #include "vtkCharArray.h"
 #include "vtkFloatArray.h"
 
+#include <vtkCellData.h>
 
 #include <algorithm>
 #include <vector>
@@ -168,9 +169,35 @@ int liggghts_bondreader::RequestData(vtkInformation *request, vtkInformationVect
 
 	vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
 
+	vtkDoubleArray *pid = vtkDoubleArray::New();
+	pid->SetNumberOfComponents(1);
+	pid->Reset();
+	pid->SetNumberOfTuples(2*COUNT);
+	pid->SetComponentName(0,"ID");
+	pid->SetName("Particle");
+
+	vtkDoubleArray *mol = vtkDoubleArray::New();
+	mol->SetNumberOfComponents(1);
+	mol->Reset();
+	mol->SetNumberOfTuples(2*COUNT);
+	mol->SetName("Molecule");
+
+	vtkDoubleArray *btype = vtkDoubleArray::New();
+	btype->SetNumberOfComponents(1);
+	btype->Reset();
+	btype->SetNumberOfTuples(2*COUNT);
+	btype->SetName("Type");
+
+	vtkDoubleArray *force = vtkDoubleArray::New();
+	force->SetNumberOfComponents(3);
+	force->SetName("F");
+
 	if (COUNT>0) {
 
 	float x1[3],x2[3];
+	int btype_,mol_;
+	//double fx_,fy_,fz_;
+	double f[3];
 	int lc=0;
 	int pc=0;
 	std::string item;
@@ -189,6 +216,9 @@ int liggghts_bondreader::RequestData(vtkInformation *request, vtkInformationVect
 		printf("Error allocating memory for id2!\n"); 
 		return 0;
 	}
+
+
+
 	vtkSmartPointer<vtkLine> *vtkline = new vtkSmartPointer<vtkLine>[COUNT];
 	if (vtkline == NULL) 
 	{
@@ -213,15 +243,32 @@ int liggghts_bondreader::RequestData(vtkInformation *request, vtkInformationVect
 			case 5:	x2[2]=atof(item.c_str());break;
 			case 6: id1[lc]=atoi(item.c_str());break;
 			case 7: id2[lc]=atoi(item.c_str());break;
+			case 8: btype_=atoi(item.c_str());break;
+			case 9: mol_=atoi(item.c_str());break;
+			case 10: f[0]=atof(item.c_str());break;
+			case 11: f[1]=atof(item.c_str());break;
+			case 12: f[2]=atof(item.c_str());break; 
 			}
 			ic++;
 		} //item
 		points->InsertNextPoint(x1[0], x1[1], x1[2]);
 		points->InsertNextPoint(x2[0], x2[1], x2[2]);
+
+		pid->InsertTuple1(pc, id1[lc]);	   //ID of point1
+		pid->InsertTuple1(pc+1, id2[lc]);  //ID of point2
+
+		btype->InsertTuple1(pc, btype_);    //btype of point1
+		btype->InsertTuple1(pc+1, btype_);  //btype of point2
+
+		mol->InsertTuple1(pc, mol_);    //mol of point1
+		mol->InsertTuple1(pc+1, mol_);  //mol of point2
+
 		vtkline[lc] = vtkSmartPointer<vtkLine>::New();
 		vtkline[lc]->GetPointIds()->SetId(0,pc);
 		vtkline[lc]->GetPointIds()->SetId(1,pc+1);
 		lines->InsertNextCell(vtkline[lc]);
+
+		force->InsertNextTupleValue(f);
 		pc+=2;
 		lc++;
 	}//line
@@ -257,11 +304,15 @@ int liggghts_bondreader::RequestData(vtkInformation *request, vtkInformationVect
 
 
 	myoutput->SetPoints(points);
-	if (COUNT>0) myoutput->SetLines(lines);
-	//myoutput->SetVerts(vertices);
-
-	myoutput->Modified();
-
+	if (COUNT>0) {
+		myoutput->SetLines(lines);
+		//myoutput->SetVerts(vertices);
+		myoutput->GetPointData()->AddArray(pid);
+		myoutput->GetPointData()->AddArray(btype);
+		myoutput->GetPointData()->AddArray(mol);
+		myoutput->GetCellData()->AddArray(force);
+		myoutput->Modified();
+	}
 
 
 	return 1;

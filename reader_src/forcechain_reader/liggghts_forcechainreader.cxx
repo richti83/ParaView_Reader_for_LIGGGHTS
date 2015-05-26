@@ -1,3 +1,8 @@
+#ifdef _WIN32
+ #define _USE_MATH_DEFINES
+ #include <math.h>
+#endif
+
 #include "liggghts_forcechainreader.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"

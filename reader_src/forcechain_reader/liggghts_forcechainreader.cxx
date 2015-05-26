@@ -288,8 +288,8 @@ int liggghts_forcechainreader::RequestData(vtkInformation *request, vtkInformati
 		points->InsertNextPoint(x1[0], x1[1], x1[2]);
 		points->InsertNextPoint(x2[0], x2[1], x2[2]);
 
-		pid->InsertTuple1(pc, id1[lc]);	//radius of point1
-		pid->InsertTuple1(pc+1, id2[lc]);  //radius of point2
+		pid->InsertTuple1(pc, id1[lc]);	   //ID of point1
+		pid->InsertTuple1(pc+1, id2[lc]);  //ID of point2
 
 		C[5]=id1[lc];
 		C[6]=id2[lc];

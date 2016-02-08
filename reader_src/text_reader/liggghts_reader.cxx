@@ -29,7 +29,7 @@
 #include "vtkCharArray.h"
 #include "vtkFloatArray.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 #include "vtkPolyDataAlgorithm.h"
 
 #if defined(WIN32) && defined(MEASURE_TIME)

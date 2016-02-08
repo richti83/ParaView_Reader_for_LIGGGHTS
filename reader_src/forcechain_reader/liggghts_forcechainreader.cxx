@@ -1,3 +1,8 @@
+#ifdef _WIN32
+ #define _USE_MATH_DEFINES
+ #include <math.h>
+#endif
+
 #include "liggghts_forcechainreader.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
@@ -34,7 +39,7 @@
 #include <algorithm>
 #include <vector>
 #include <string>
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 //#include "vtkImageAlgorithm.h"
 #include "vtkPolyDataAlgorithm.h"
@@ -288,8 +293,9 @@ int liggghts_forcechainreader::RequestData(vtkInformation *request, vtkInformati
 		points->InsertNextPoint(x1[0], x1[1], x1[2]);
 		points->InsertNextPoint(x2[0], x2[1], x2[2]);
 
-		pid->InsertTuple1(pc, id1[lc]);	//radius of point1
-		pid->InsertTuple1(pc+1, id2[lc]);  //radius of point2
+		pid->InsertTuple1(pc, id1[lc]);	   //ID of point1
+		pid->InsertTuple1(pc+1, id2[lc]);  //ID of point2
+
 
 		C[5]=id1[lc];
 		C[6]=id2[lc];
@@ -304,8 +310,6 @@ int liggghts_forcechainreader::RequestData(vtkInformation *request, vtkInformati
 		double d=C[3];
 		double V=M_PI*((Ri+Rj-d)*(Ri+Rj-d)*(d*d+2*d*Rj-3*Rj*Rj+2*d*Ri+6*Rj*Ri-3*Ri*Ri))/(12*d); //see http://mathworld.wolfram.com/Sphere-SphereIntersection.html+
 
-		
-		
 		N[0]=x2[0]-x1[0];
 		N[1]=x2[1]-x1[1];
 		N[2]=x2[2]-x1[2];

@@ -153,8 +153,9 @@ int liggghts_rigids_reader::RequestData(vtkInformation *request, vtkInformationV
 	}
 
 
-	double x[3],F[3],Q[4],vel[3],M[9],rot[3],axis[3],angle;
+	double x[3],F[3],PF[3],Q[4],vel[3],M[9],rot[3],axis[3],angle;
 	int id,type;
+	double sc;
 	int lc=0;
 
 	std::string item;
@@ -165,6 +166,10 @@ int liggghts_rigids_reader::RequestData(vtkInformation *request, vtkInformationV
 	ids->SetNumberOfComponents(1);
 	ids->SetName("id");
 
+	vtkDoubleArray *scalars = vtkDoubleArray::New();
+	scalars->SetNumberOfComponents(1);
+	scalars->SetName("sc");
+
 	vtkIntArray *types = vtkIntArray::New();
 	types->SetNumberOfComponents(1);
 	types->SetName("type");
@@ -172,6 +177,10 @@ int liggghts_rigids_reader::RequestData(vtkInformation *request, vtkInformationV
 	vtkDoubleArray *forces = vtkDoubleArray::New();
 	forces->SetNumberOfComponents(3);
 	forces->SetName("F");
+
+	vtkDoubleArray *pforces = vtkDoubleArray::New();
+	pforces->SetNumberOfComponents(3);
+	pforces->SetName("PF");
 
 	vtkDoubleArray *velocity = vtkDoubleArray::New();
 	velocity->SetNumberOfComponents(3);
@@ -210,6 +219,7 @@ int liggghts_rigids_reader::RequestData(vtkInformation *request, vtkInformationV
 	a->SetName("angle");
 
         //c_bid c_btype c_xcm[1] c_xcm[2] c_xcm[3] c_quat[1] c_quat[2] c_quat[3] c_quat[4] c_vel[1] c_vel[2] c_vel[3] c_fcm[1] c_fcm[2] c_fcm[3] 
+	//c_bid c_btype c_xcm[1] c_xcm[2] c_xcm[3] c_quat[1] c_quat[2] c_quat[3] c_quat[4] c_vel[1] c_vel[2] c_vel[3] c_fcm[1] c_fcm[2] c_fcm[3] c_pf[1] c_pf[2] c_pf[3] c_sc
 	while ( this->File->getline(line,sizeof(line)) ) { //every line
 		int ic=0;
 		std::string line_content=line;
@@ -231,12 +241,19 @@ int liggghts_rigids_reader::RequestData(vtkInformation *request, vtkInformationV
 			case 12: F[0]=atof(item.c_str());break;
 			case 13: F[1]=atof(item.c_str());break;
 			case 14: F[2]=atof(item.c_str());break;
+			
+			case 15: PF[0]=atof(item.c_str());break;
+			case 16: PF[1]=atof(item.c_str());break;
+			case 17: PF[2]=atof(item.c_str());break;
+
+			case 18: sc=atof(item.c_str());break;
 			}
 			ic++;
 		} //item
 		points->InsertNextPoint(x[0], x[1], x[2]);
 		//printf("lc=%d:%s\n",lc,line);
 		forces->InsertNextTupleValue(F);
+		pforces->InsertNextTupleValue(PF);
 		quats->InsertNextTupleValue(Q);
 		double x,y,z;
 
@@ -294,6 +311,7 @@ int liggghts_rigids_reader::RequestData(vtkInformation *request, vtkInformationV
 		Yaw->InsertNextValue(yaw_value);
 		
 		ids->InsertNextValue(id);
+		scalars->InsertNextValue(sc);
 		types->InsertNextValue(type);
 		velocity->InsertNextTupleValue(vel);
 		lc++;
@@ -320,8 +338,10 @@ int liggghts_rigids_reader::RequestData(vtkInformation *request, vtkInformationV
 	myoutput->SetPoints(points);
   	myoutput->SetVerts(vertices);
 	myoutput->GetPointData()->AddArray(ids);
+	myoutput->GetPointData()->AddArray(scalars);
 	myoutput->GetPointData()->AddArray(types);
 	myoutput->GetPointData()->AddArray(forces);
+	myoutput->GetPointData()->AddArray(pforces);
 	myoutput->GetPointData()->AddArray(quats);
 	myoutput->GetPointData()->AddArray(Roll);
 	myoutput->GetPointData()->AddArray(Pitch);
@@ -336,6 +356,7 @@ int liggghts_rigids_reader::RequestData(vtkInformation *request, vtkInformationV
 	points->Delete();
 	vertices->Delete();
 	forces->Delete();forces=NULL;
+	pforces->Delete();pforces=NULL;
 	quats->Delete();quats=NULL;
 	velocity->Delete();velocity=NULL;
 	T->Delete();T=NULL;
@@ -343,6 +364,7 @@ int liggghts_rigids_reader::RequestData(vtkInformation *request, vtkInformationV
 	A->Delete();A=NULL;
 	a->Delete();a=NULL;
 	ids->Delete();ids=NULL;
+	scalars->Delete();scalars=NULL;
 	types->Delete();types=NULL;
 	Roll->Delete();Roll=NULL;
 	Pitch->Delete();Pitch=NULL;

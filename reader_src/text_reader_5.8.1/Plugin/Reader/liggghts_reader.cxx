@@ -153,6 +153,7 @@ int liggghts_reader::RequestData(vtkInformation *request, vtkInformationVector *
 
 											 // Etnfernen von Sonderzeichen am Ende von Line, ansonsten kann es sein, dass strcmp nicht funktioniert
 	trim(line);
+	
 
 	if (strcmp(line, "ITEM: LABEL") == 0) { //backwardscompatibility to old dumpfiles
 		this->File->getline(line, sizeof(line)); //4th line = SIMTIME if (a)
@@ -206,6 +207,11 @@ int liggghts_reader::RequestData(vtkInformation *request, vtkInformationVector *
 	std::string OTHERname[128];
 
 	while (std::getline(ss, item, ' ')) {
+		if (item.compare(" ") == 0) continue;
+		if (item.compare("\0") == 0) continue;
+		if (item.compare("\r") == 0) continue;
+		if (item.compare("\n") == 0) continue;
+
 		if (item.compare("id") == 0) {
 			//vtkErrorMacro(<<"found ID@POS" << pos);
 			IDpos = pos;
@@ -442,7 +448,7 @@ int liggghts_reader::RequestData(vtkInformation *request, vtkInformationVector *
 			pos++;
 		}
 		else {
-			//vtkErrorMacro(<<"unknown item @Pos" << pos << " " <<item.c_str());
+			MSG(<<"unknown item @Pos" << pos << " " <<item.c_str());
 			OTHERpos[noo] = pos;
 			OTHERname[noo] = item.c_str();
 			noo++;
@@ -919,11 +925,12 @@ int liggghts_reader::RequestData(vtkInformation *request, vtkInformationVector *
 	if (v_QUATpos >= 0) myoutput->GetPointData()->AddArray(vectors[v_QUATpos]);
 	if (v_TQpos >= 0) myoutput->GetPointData()->AddArray(vectors[v_TQpos]);
 
-	/*if (noo>0) {
+	if (noo>0) {
 		for (int i = 0; i<noo; i++) {
 			myoutput->GetPointData()->AddArray(others[i]);
+			//MSG(<< others[i]<<"\n");
 		}
-	}*/
+	}
 
 	vtkIntArray *intValue;
 	intValue = vtkIntArray::New();

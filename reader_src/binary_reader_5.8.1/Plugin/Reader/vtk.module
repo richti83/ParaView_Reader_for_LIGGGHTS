@@ -1,0 +1,8 @@
+NAME
+  liggghts_binary_reader_mod
+LIBRARY_NAME
+  liggghts_binary_reader_mod
+IMPLEMENTABLE
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonExecutionModel
